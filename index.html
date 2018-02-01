@@ -1,0 +1,79 @@
+<html>
+<head>
+<title>A Leaflet map!</title>
+<meta charset="UTF-8">
+
+ <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css"/>
+ <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+<style>
+#map {width: 90%; height:600px; margin: auto; }
+</style>
+
+</head>
+
+<body>
+
+  <div id="map"></div>
+  
+<script>
+
+var map = L.map('map', {
+                 center: [50, 10],
+                 zoom: 5 });
+   
+   
+   
+   var baselayers = {
+     OSM: L.tileLayer('http://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'),
+     ESRI: L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}'),
+	 Mapbox: L.tileLayer('https://api.mapbox.com/styles/v1/mastersigat/ciyty7yxf00452rph8j0302ng/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFzdGVyc2lnYXQiLCJhIjoiY2loNG9mamxwMHp2dHgxbTBjY2hlb2RteiJ9.dDYKXX9907pbT6sTAJ4fvA'),
+     CartoDB: L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png'),
+     OrthoRM:L.tileLayer.wms('https://public.sig.rennesmetropole.fr/geoserver/ows?',
+                             {layers: 'raster:ortho2014',  opacity: 0.5}),
+     Ancien:L.tileLayer.wms('http://geobretagne.fr/geoserver/photo/wms?',
+                             {layers: 'satellite-ancien'})
+
+};baselayers.Mapbox.addTo(map);
+
+var customPopup = "<b>Université Rennes 1<br/<br/><img src='http://www.facsdedroit.fr/blog/wp-content/uploads/2015/11/Universit%C3%A9-Rennes-1.jpg' width='350px'/>";
+var customOptions = {'maxWidth': '500', 'className' : 'custom'}
+
+
+var Rennes1 = new L.LayerGroup();
+	L.marker([48.12, -1.6353]).bindPopup(customPopup,customOptions);
+	
+var rennesicone = L.icon({
+    iconUrl: 'http://www.planetecampus.com/wp-content/uploads/2015/06/universit%C3%A9-de-rennes-1.jpg',
+    iconSize: [30, 30] }); 
+    
+var Rennes2 = L.marker([48.119, -1.7013], {icon: rennesicone}).bindPopup('<b>Universite Rennes 2</b>');
+ 
+var Parcelbati = L.tileLayer.wms('http://mapsref.brgm.fr/wxs/refcom-brgm/refign', 
+                          {layers: 'PARVEC_BATIMENT',format: 'image/png',transparent:true}) .addTo(map); 
+ var marqueurs = {"Rennes1": Rennes1, "Parcelbati": Parcelbati,};
+
+  	L.control.layers(baselayers, marqueurs, {position: 'topright', collapsed: false, autoZIndex: true}).addTo(map);
+    		L.control.scale().addTo(map);
+
+
+
+
+</script>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+</body>
+</html>
