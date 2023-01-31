@@ -1,0 +1,252 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>MapboxGL</title>
+
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.1/mapbox-gl.js'></script>
+<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.5.1/mapbox-gl.css' rel='stylesheet' />    
+
+<style>
+#map {position:absolute; top:0; bottom:0; width:100%;}
+   
+  #menu {
+  width: 20%;
+  Z-index: 1;
+  top: 10px;
+  left: 20px;
+  position: absolute;
+  opacity: 0.7;
+  font-size: 14px;    
+  font-family: 'Helvetica Neue', Arial, Helvetica, sans-
+serif;
+}
+#menu a {
+  border-radius: 5px;
+  display: block;
+  color: #FFFFFF;
+  margin: 5px;
+  padding: 10px 10px;
+  text-align: center;
+  font-weight: bold;
+  border: solid 2px;
+  background-color: #737373;
+  text-decoration: none;
+}
+#menu a.active {
+  background-color: #CC6600;
+  color: #FFFFFF;
+}
+#menu a:hover:not(.active) {
+  background-color: #CC6600;
+  color: #FFFFFF;
+}
+
+  
+</style>
+
+</head>
+    
+<body>
+<div id='map'> <div id="menu"></div> 
+</div>
+
+<script>
+    // AccesToken
+mapboxgl.accessToken = 'pk.eyJ1IjoibmluYW5vdW4iLCJhIjoiY2pjdHBoZGlzMnV4dDJxcGc5azJkbWRiYSJ9.o4dZRrdHcgVEKCveOXG1YQ';
+
+    // Configuration de la carte
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v9', // Fond de carte
+    center: [-1.68, 48.12], // lat/long
+    zoom: 15, // zoom
+    pitch: 50, // Inclinaison
+    bearing: -10 // Rotation
+});
+
+  
+  // Chargement des couches
+  map.on('load', function () {
+ 
+    // Fond de carte
+ map.addSource('mapbox-streets-v8', {
+   type: 'vector',
+   url: 'mapbox://mapbox.mapbox-streets-v8'});
+  
+    
+    // Ajout des routes
+  map.addLayer({
+        "id": "Routes",
+        "type": "line",
+        "source": "mapbox-streets-v8",
+        "filter": ["all",  ["in", "class", "motorway", "trunk", "primary"]],        
+        "layout": {'visibility': 'none'},
+        "source-layer": "road",
+        "paint": {"line-color": "#ebff1e", "line-width": 1}
+    }); 
+
+    // Hydrologie
+
+   map.addLayer({"id": "hydrologie",
+                         "type": "line", 
+                         "source": "mapbox-streets-v8",
+                         "source-layer": "waterway",
+                         "paint": {"line-color": "#4dd2ff",
+                         "line-width": 7}
+    });
+
+//Proprietes
+
+map.addSource('Proprietes', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.a4kdgiot'
+    });
+
+map.addLayer({
+        'id': 'Proprietes',
+        'type': 'line',
+        'source': 'Proprietes',
+        'source-layer': 'limites_proprietes',
+        'layout': {'visibility': 'none',
+        'line-join': 'round','line-cap': 'round'},
+        'paint': {'line-color': '#FFFFFF', 'line-width': 0.5}
+}); 
+
+//BATIMENTS IGN
+
+map.addSource('BatimentsIGN', {
+        type: 'vector',
+        url: 'mapbox://mastersigat.a4h4ovrl'
+    });
+  
+ 
+  map.addLayer({
+    'id': 'BatimentsIGN',
+    'type': 'fill-extrusion',
+    'source': 'BatimentsIGN',
+    'source-layer': 'batiIGN-8zf03o',
+    'layout': {'visibility': 'none'},
+	'paint': 
+		{'fill-extrusion-color': '#FFFFFF', 
+		 'fill-extrusion-height':{'type': 'identity','property': 'HAUTEUR'},
+		 'fill-extrusion-opacity': 0.90,
+                                      'fill-extrusion-base': 0}
+    });
+
+    // Ajout des arrets de bus
+    
+map.addSource('Arrets', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.58widelk'});
+   
+map.addLayer({
+        'id': 'Arrets',
+        'type': 'circle',
+        'source': 'Arrets',
+        'source-layer': 'Bus-5ypx1k',
+        'layout': {'visibility': 'none'},
+        'paint': {'circle-radius': {'base': 1.5,'stops': [[13, 2], [22, 60]]}, 'circle-color': '#f31616',}, minzoom:12
+    });
+    
+    // Ajout des batiments publics
+    
+    map.addSource('Equipements', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.4xcn5ude'});
+   
+map.addLayer({
+        'id': 'Equipements',
+        'type': 'circle',
+        'source': 'Equipements',
+        'source-layer': 'base-orga-var-6k0zky',
+        'layout': {'visibility': 'none'},
+        'paint': {'circle-radius': {'base': 1.5,'stops': [[13, 2], [22, 60]]}, 'circle-color': '#16f337'}, minzoom:14
+    });
+    
+   });
+  
+  //Interactivité HOVER
+
+var popup = new mapboxgl.Popup({
+    closeButton: false,
+    closeOnClick: false });
+
+map.on('mousemove', function(e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['Equipements'] });
+    // Change the cursor style as a UI indicator.
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+
+    if (!features.length) {
+        popup.remove();
+        return; }
+
+    var feature = features[0];
+        popup.setLngLat(feature.geometry.coordinates)
+        .setHTML(feature.properties.organom)
+        .addTo(map);
+
+});
+  
+//Interactivité CLICK
+
+map.on('click', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['Arrets'] });
+
+    if (!features.length) {
+        return;
+    }
+
+    var feature = features[0];
+    var popup = new mapboxgl.Popup({ offset: [0, -15] })
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<h2>' + feature.properties.nom +  '</h2> <img src="https://reseed.ls2n.fr/wp-content/uploads/sites/22/2017/10/Logo_ECN.svg_-1150x445.png" style="width:50%">  <h3>' 
+		+"Mobilier : " + feature.properties.mobilier + '</h3><p>'
+		+"Accessibilité PMR : " + feature.properties.estaccessiblepmr + '</p>' )  
+	    .addTo(map);
+});
+
+map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['Arrets'] });
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+});
+ 
+
+// Gestion du menu des couches
+
+var toggleableLayerIds = ['Routes', 'Arrets', 'Equipements', 'Proprietes',  'BatimentsIGN' ];
+
+for (var i = 0; i < toggleableLayerIds.length; i++) {var id = toggleableLayerIds[i];
+
+    var link = document.createElement('a');
+    link.href = '#';
+    link.className = 'inactive';
+    link.textContent = id;
+
+    link.onclick = function (e) {var clickedLayer = this.textContent;
+        e.preventDefault();
+        e.stopPropagation();
+        var visibility = map.getLayoutProperty(clickedLayer, 'visibility');
+        if (visibility === 'visible') {
+            map.setLayoutProperty(clickedLayer, 'visibility', 'none');
+            this.className = '';} else {this.className = 'active';
+            map.setLayoutProperty(clickedLayer, 'visibility', 'visible');} };
+
+var layers = document.getElementById('menu');  layers.appendChild(link); }
+
+// Ajout boutons navigation a la fin du script
+
+var nav = new mapboxgl.NavigationControl();
+map.addControl(nav, 'top-right');
+
+  // Ajout Echelle cartographique a la fin du script
+
+map.addControl(new mapboxgl.ScaleControl({
+    maxWidth: 120,
+    unit: 'metric'}));
+
+
+</script>
+
+</body>
+</html>
