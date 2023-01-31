@@ -1,0 +1,228 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>Display a map</title>
+     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet'/>
+   <style>
+#map {
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:100%;
+}
+
+        .map-overlay-2 {
+            font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+            position: absolute;
+            width: 200px;
+            top: 0;
+            left: 50px;
+            padding: 10px;
+        }
+
+        .map-overlay-2 .map-overlay-inner {
+            background-color: #fff;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+            border-radius: 3px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .map-overlay-inner fieldset {
+            border: none;
+            padding: 0;
+            margin: 0 0 10px;
+        }
+
+        .map-overlay-inner .categoryLabel {
+            display: block;
+            font-weight: bold;
+            margin: 0 0 5px;
+        }
+
+</style>
+</head>
+<body>
+
+<div id='map' class='map'></div>
+
+
+
+
+<div class='map-overlay-2 top'>
+    <div class='map-overlay-inner'>
+        <fieldset>
+            <label class="categoryLabel">Données Réferentielles</label>
+            <div>
+                <input type="checkbox" id="RoutesCB" value="Routes" onchange="switchlayer('Routes')" checked/>
+                <label for="RoutesCB">Routes</label>
+            </div>
+
+            <div>
+                <input type="checkbox" id="HydrologieCB" value="Hydrologie" onchange="switchlayer('Hydrologie')" checked/>
+                <label for="HydrologieCB">Hydrologie</label>
+            </div>
+        </fieldset>
+        <fieldset>
+            <label class="categoryLabel">Données métier</label>
+            <div>
+                <input type="checkbox" id="ProprietesCB" value="Proprietes" onchange="switchlayer('Proprietes')" />
+                <label for="ProprietesCB">Limites de propriétés</label>
+            </div>
+            <div>
+                <input type="checkbox" id="CadastreCB" value="Cadastre" onchange="switchlayer('Cadastre')" />
+                <label for="CadastreCB">Parcelles cadastrales</label>
+            </div>
+        </fieldset>
+        <fieldset>
+            <label class="categoryLabel">Autres</label>
+            <div>
+                <input type="checkbox" id="ArbresCB" value="Arbres" onchange="switchlayer('Arbres')" />
+                <label for="ArbresCB">Arbres</label>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+
+</div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibmluYW5vdW4iLCJhIjoiY2pjdHBoZGlzMnV4dDJxcGc5azJkbWRiYSJ9.o4dZRrdHcgVEKCveOXG1YQ';
+  
+var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: 'mapbox://styles/ninanoun/cj95t4ppj07ka2sp0tac8x5ll', // stylesheet location
+    center: [-1.68, 48.12], // starting position [lng, lat]
+    zoom: 18,
+    pitch: 50, //Inclinaison
+    bearing: -10 // Rotation
+});
+ 
+  map.on('load', function () {
+
+ map.addSource('mapbox-streets-v7', {
+   type: 'vector',
+   url: 'mapbox://mapbox.mapbox-streets-v7'});
+  
+  map.addLayer({
+        "id": "Routes",
+        "type": "line",
+        "source": "mapbox-streets-v7",
+        "layout": {'visibility': 'visible'},
+        "source-layer": "road",
+        "paint": {"line-color": "#ff8533", "line-width": 1}
+    }); 
+    
+map.addLayer({
+        "id": "Hydrologie",
+        "type": "line", 
+        "source": "mapbox-streets-v7",
+        "source-layer": "waterway",
+        "layout": {'visibility': 'visible'},
+        "paint": {"line-color": "#4dd2ff",
+            "line-width": 10}
+    });
+    
+    // Ajout arbres 
+    
+    
+map.addSource('Arbres', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.dx1cg9bg'});
+   
+map.addLayer({
+        'id': 'Arbres',
+        'type': 'circle',
+        'source': 'Arbres',
+        'source-layer': 'arbres-d-alignement-rennes-a5jtaq',
+        'layout': {'visibility': 'none'},
+        'paint': {'circle-radius': 3, 'circle-color': '#0df634',}
+    });
+
+
+       
+
+     
+    //CADASTRE 
+
+map.addSource('Cadastre', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.9w43ib0o'
+    });
+  
+map.addLayer({
+        'id': 'Cadastre',
+        'type': 'fill',
+        'source': 'Cadastre',
+        'source-layer': 'parcellesok-6c4k76',
+        'layout': {'visibility': 'none'},
+  'paint': {'fill-color': '#000000', 'fill-opacity':0.3}
+}); 
+ 
+    map.addLayer({
+        'id': 'Cadastre2',
+        'type': 'line',
+        'source': 'Cadastre',
+        'source-layer': 'parcellesok-6c4k76',
+        'layout': {'visibility': 'visible'},
+  'paint': {'line-color': '#FFFFFF', 'line-width':1}
+}); 
+              
+    //Proprietes
+
+map.addSource('Proprietes', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.a4kdgiot'
+    });
+
+map.addLayer({
+        'id': 'Proprietes',
+        'type': 'line',
+        'source': 'Proprietes',
+        'source-layer': 'limites_proprietes',
+        'layout': {'visibility': 'none',
+        'line-join': 'round','line-cap': 'round'},
+        'paint': {'line-color': '#000000', 'line-width': 2}
+}); 
+
+        switchlayer = function (lname) {
+            if (document.getElementById(lname + "CB").checked) {
+                map.setLayoutProperty(lname, 'visibility', 'visible');
+            } else {
+                map.setLayoutProperty(lname, 'visibility', 'none');
+           }
+        }
+
+    }); 
+    
+
+
+//Interactivité CLICK
+
+map.on('click', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['Cadastre'] });
+
+    if (!features.length) {
+        return;
+    }
+
+    var feature = features[0];
+    var popup = new mapboxgl.Popup({ offset: [0, -15] })
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<h2>' + feature.properties.numero + '</h2><h3>' 
+		+"Mobilier : " + feature.properties.prefixe + '</h3><p>'
+		+"Accessibilité PMR : " + feature.properties.section + '</p>' )  
+	    .addTo(map);
+});
+
+map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['Cadastre'] });
+    map.getCanvas().style.cursor = (features.length) ? 'pointer' : '';
+});
+
+</script>
+
+</body>
+</html>
